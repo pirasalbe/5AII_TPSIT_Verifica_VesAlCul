@@ -17,6 +17,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 
 /**
  *
@@ -37,16 +38,19 @@ public class travelSet extends HttpServlet {
             throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
         
+        //session
+        HttpSession session = request.getSession();
+        int value = 1;
+        
         String min = request.getParameter("min"), max = request.getParameter("max") ;
         if(min.equals("") || min == null) min = "0";
         if(max.equals("") || max == null) max = "30";
         
         String query = "select * "
-                + "from (pacchetti p inner join nazioni n on n.codNazioni=p.codNazioni)"
-                + "inner join touroperator t on t.codorg=p.codorg "
-                + "where n.denom like '" + request.getParameter("destination") + "%' "
-                + "and p.giorni between " + min + " and " + max
-                + " order by p.giorni, p.prezzo";
+                + "from nazioni "
+                + "where denom like '" + request.getParameter("destination") + "%' ";
+        
+        
         
         Connection c = null;
         Statement s = null;
@@ -62,30 +66,52 @@ public class travelSet extends HttpServlet {
             //query
             r = s.executeQuery(query);
             
-            result += "<div class='row'>"
-                                    + "<div class='alert alert-warning'>"
-                                        + "<div class='col-sm-2'>Descrizione</div>"
-                                        + "<div class='col-sm-2'>Giorni</div>"
-                                        + "<div class='col-sm-2'>Modalità</div>"
-                                        + "<div class='col-sm-2'>Prezzo</div>"
-                                        + "<div class='col-sm-2'>Modalità</div>"
-                                        + "<div class='col-sm-2'>Tour operator</div>"
-                                    + "</div>"
-                            + "</div>";
-            
-            while(r.next()){
+            if(r.next()) {
                 destination = r.getString("denom");
+                
+                //query for the destination
+                query = "select * "
+                    + "from (pacchetti p inner join nazioni n on n.codNazioni=p.codNazioni)"
+                    + "inner join touroperator t on t.codorg=p.codorg "
+                    + "where n.denom = '" + destination + "' "
+                    + "and p.giorni between " + min + " and " + max
+                    + " order by p.giorni, p.prezzo";
+
+                //query
+                r = s.executeQuery(query);
+
                 result += "<div class='row'>"
-                                    + "<div class='alert alert-info'>"
-                                        + "<div class='col-sm-2'>" + r.getString("descrizione") + "</div>"
-                                        + "<div class='col-sm-2'>" +  r.getInt("giorni") + "</div>"
-                                        + "<div class='col-sm-2'>" +  r.getString("modalita") + "</div>"
-                                        + "<div class='col-sm-2'>" +  r.getInt("prezzo") + "</div>"
-                                        + "<div class='col-sm-2'>" +  r.getString("modalita") + "</div>"
-                                        + "<div class='col-sm-2'>" +  r.getString("nome") + "</div>"
-                                    + "</div>"
-                            + "</div>";
-            }
+                                        + "<div class='alert alert-warning'>"
+                                            + "<div class='col-sm-2'>Descrizione</div>"
+                                            + "<div class='col-sm-2'>Giorni</div>"
+                                            + "<div class='col-sm-2'>Modalità</div>"
+                                            + "<div class='col-sm-2'>Prezzo</div>"
+                                            + "<div class='col-sm-2'>Modalità</div>"
+                                            + "<div class='col-sm-2'>Tour operator</div>"
+                                        + "</div>"
+                                + "</div>";
+
+                while(r.next()){
+                    result += "<div class='row'>"
+                                        + "<div class='alert alert-info'>"
+                                            + "<div class='col-sm-2'>" + r.getString("descrizione") + "</div>"
+                                            + "<div class='col-sm-2'>" +  r.getInt("giorni") + "</div>"
+                                            + "<div class='col-sm-2'>" +  r.getString("modalita") + "</div>"
+                                            + "<div class='col-sm-2'>" +  r.getInt("prezzo") + "</div>"
+                                            + "<div class='col-sm-2'>" +  r.getString("modalita") + "</div>"
+                                            + "<div class='col-sm-2'>" +  r.getString("nome") + "</div>"
+                                        + "</div>"
+                                + "</div>";
+                }
+
+                //views
+                if(session.getAttribute(destination)==null){
+                    session.setAttribute(destination, value);
+                } else{
+                    value = (int)session.getAttribute(destination) + 1;
+                    session.setAttribute(destination, value);
+                }
+            } else value = 0;
         } catch(ClassNotFoundException | SQLException e){
             System.out.println(e); //for debug purpose
             result += e;
@@ -115,6 +141,13 @@ public class travelSet extends HttpServlet {
             out.println("<div class='row'>"
                     + "<input type='button' class='btn btn-default' value='Home' onClick=\"javascript:location.href='index.html'\" />"
                     + "</div>");
+            
+            //views
+            if(value > 0)
+            out.println("<br><div class='row'>"
+                    + "<div class='alert alert-success'>"
+                    + "Views: " + value
+                    + "</div></div>");
             
             out.println("</div>");
             
