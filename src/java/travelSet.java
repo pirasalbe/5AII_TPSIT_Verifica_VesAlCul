@@ -37,12 +37,16 @@ public class travelSet extends HttpServlet {
             throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
         
+        String min = request.getParameter("min"), max = request.getParameter("max") ;
+        if(min.equals("") || min == null) min = "0";
+        if(max.equals("") || max == null) max = "30";
+        
         String query = "select * "
                 + "from (pacchetti p inner join nazioni n on n.codNazioni=p.codNazioni)"
                 + "inner join touroperator t on t.codorg=p.codorg "
                 + "where n.denom like '" + request.getParameter("destination") + "%' "
-                + "and p.giorni between " + request.getParameter("min") +" and " + request.getParameter("max") 
-                + " order by p.prezzo, p.giorni";
+                + "and p.giorni between " + min + " and " + max
+                + " order by p.giorni, p.prezzo";
         
         Connection c = null;
         Statement s = null;
