@@ -4,9 +4,17 @@
         <servlet-name>travelSet</servlet-name>
         <servlet-class>travelSet</servlet-class>
     </servlet>
+    <servlet>
+        <servlet-name>buyTravel</servlet-name>
+        <servlet-class>buyTravel</servlet-class>
+    </servlet>
     <servlet-mapping>
         <servlet-name>travelSet</servlet-name>
         <url-pattern>/travelSet</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>buyTravel</servlet-name>
+        <url-pattern>/buyTravel</url-pattern>
     </servlet-mapping>
     <session-config>
         <session-timeout>
