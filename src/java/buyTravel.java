@@ -59,6 +59,19 @@ public class buyTravel extends HttpServlet {
             r = s.executeQuery(query);
             
             if(r.next()) {
+                header = "<div class=\"row\">\n" +
+                        "<div class=\"jumbotron text-center\"><h2>" + r.getString("c.nome") + " " + r.getString("c.cognome") + "</h2></div>" +
+                        "</div>" +
+                                "<div class='row'>"
+                                    + "<div class='alert alert-warning'>"
+                                        + "<div class='col-sm-2'>Data Acquisto</div>"
+                                        + "<div class='col-sm-2'>Data Partenza</div>"
+                                        + "<div class='col-sm-2'>Destinazione</div>"
+                                        + "<div class='col-sm-2'>Tour operator</div>"
+                                        + "<div class='col-sm-2'>Prezzo</div>"
+                                    + "</div>"
+                            + "</div>";
+                    
                 //real query with the first client
                 query = "select * "
                     + "from (((clienti c inner join acquisti a on a.codcliente=c.codcliente) "
@@ -73,18 +86,6 @@ public class buyTravel extends HttpServlet {
                 r = s.executeQuery(query);
 
                 while(r.next()){
-                    header = "<div class=\"row\">\n" +
-                            "<div class=\"jumbotron text-center\"><h2>" + r.getString("c.nome") + " " + r.getString("c.cognome") + "</h2></div>" +
-                            "</div>" +
-                                    "<div class='row'>"
-                                        + "<div class='alert alert-warning'>"
-                                            + "<div class='col-sm-2'>Data Acquisto</div>"
-                                            + "<div class='col-sm-2'>Data Partenza</div>"
-                                            + "<div class='col-sm-2'>Destinazione</div>"
-                                            + "<div class='col-sm-2'>Tour operator</div>"
-                                            + "<div class='col-sm-2'>Prezzo</div>"
-                                        + "</div>"
-                                + "</div>";
                     result += "<div class='row'>"
                                         + "<div class='alert alert-info'>"
                                             + "<div class='col-sm-2'>" + r.getDate("dataacquisti") + "</div>"
@@ -98,11 +99,12 @@ public class buyTravel extends HttpServlet {
                     totalPrice += r.getInt("prezzo");
                 }
 
-                result= header + result
-                    + "<br><div class='row'>"
-                    + "<div class='alert alert-success'>"
-                    + "Spese totali: " + totalPrice
-                    + "</div></div>";
+                result = header + result;
+                if(totalPrice>0) 
+                    result += "<br><div class='row'>"
+                        + "<div class='alert alert-success'>"
+                        + "Spese totali: " + totalPrice
+                        + "</div></div>";
             }
         } catch(ClassNotFoundException | SQLException e){
             System.out.println(e); //for debug purpose
