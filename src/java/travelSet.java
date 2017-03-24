@@ -13,6 +13,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Vector;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -24,6 +25,7 @@ import javax.servlet.http.HttpSession;
  * @author pirasalbe
  */
 public class travelSet extends HttpServlet {
+     private Vector<map> views = new Vector<>();
 
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
@@ -40,8 +42,9 @@ public class travelSet extends HttpServlet {
         
         //session
         HttpSession session = request.getSession();
-        int value = 1;
+        int value = 1, totalViews = value;
         
+        //obtain values
         String min = request.getParameter("min"), max = request.getParameter("max") ;
         if(min.equals("") || min == null) min = "0";
         if(max.equals("") || max == null) max = "30";
@@ -49,8 +52,6 @@ public class travelSet extends HttpServlet {
         String query = "select * "
                 + "from nazioni "
                 + "where denom like '" + request.getParameter("destination") + "%' ";
-        
-        
         
         Connection c = null;
         Statement s = null;
@@ -105,11 +106,25 @@ public class travelSet extends HttpServlet {
                 }
 
                 //views
+                //session
                 if(session.getAttribute(destination)==null){
                     session.setAttribute(destination, value);
                 } else{
                     value = (int)session.getAttribute(destination) + 1;
                     session.setAttribute(destination, value);
+                }
+                //map
+                totalViews = 1;
+                boolean found = false;
+                for(map m : views){
+                    if(found = m.getName().equals(destination)){
+                        m.Increment();
+                        totalViews = m.getCounter();
+                    }
+                }
+                if(!found){
+                    map m = new map(totalViews, destination);
+                    views.add(m);
                 }
             } else value = 0;
         } catch(ClassNotFoundException | SQLException e){
@@ -146,8 +161,14 @@ public class travelSet extends HttpServlet {
             if(value > 0)
             out.println("<br><div class='row'>"
                     + "<div class='alert alert-success'>"
+                    + "<div class='col-sm-2'>"
                     + "Views: " + value
-                    + "</div></div>");
+                    + "</div>"
+                    + "<div class='col-sm-2'>"
+                    + "Total views: " + totalViews
+                    + "</div>"
+                    + "</div>"
+                    + "</div>");
             
             out.println("</div>");
             
