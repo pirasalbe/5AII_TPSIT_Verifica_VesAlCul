@@ -20,7 +20,7 @@ import javax.servlet.http.HttpServletResponse;
  *
  * @author pirasalbe
  */
-public class buyTravel extends HttpServlet {
+public class destination extends HttpServlet {
 
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
@@ -35,14 +35,11 @@ public class buyTravel extends HttpServlet {
             throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
         
-        String dateda = request.getParameter("dateda"), datea = request.getParameter("datea") ;
-        if(dateda.equals("") || dateda == null) dateda = "2010-01-01";
-        if(datea.equals("") || datea == null) datea = "2017-01-01";
+        String destination = request.getParameter("denom");
         
         String query = "select * "
-                + "from clienti c "
-                + "where c.nome like '" + request.getParameter("name") + "%' "
-                + "and c.cognome like '" + request.getParameter("surname") + "%' ";
+                + "from nazioni n "
+                + "where denom = '" + destination + "' ";
         
         Connection c = null;
         Statement s = null;
@@ -59,51 +56,28 @@ public class buyTravel extends HttpServlet {
             r = s.executeQuery(query);
             
             if(r.next()) {
-                //real query with the first client
-                query = "select * "
-                    + "from (((clienti c inner join acquisti a on a.codcliente=c.codcliente) "
-                    + "inner join pacchetti p on a.codpacchetto=p.codpacchetto) "
-                    + "inner join nazioni n on n.codNazioni=p.codNazioni) "
-                    + "inner join touroperator t on t.codorg=p.codorg "
-                    + "where c.nome like '" + r.getString("nome") + "%' "
-                    + "and c.cognome like '" + r.getString("cognome") + "%' "
-                    + "and a.dataacquisti between '" + dateda + "' and '" + datea + "'";
-
-                //query
-                r = s.executeQuery(query);
-
-                while(r.next()){
-                    header = "<div class=\"row\">\n" +
-                            "<div class=\"jumbotron text-center\"><h2>" + r.getString("c.nome") + " " + r.getString("c.cognome") + "</h2></div>" +
-                            "</div>" +
-                                    "<div class='row'>"
-                                        + "<div class='alert alert-warning'>"
-                                            + "<div class='col-sm-2'>Data Acquisto</div>"
-                                            + "<div class='col-sm-2'>Data Partenza</div>"
-                                            + "<div class='col-sm-2'>Destinazione</div>"
-                                            + "<div class='col-sm-2'>Tour operator</div>"
-                                            + "<div class='col-sm-2'>Prezzo</div>"
-                                        + "</div>"
-                                + "</div>";
-                    result += "<div class='row'>"
-                                        + "<div class='alert alert-info'>"
-                                            + "<div class='col-sm-2'>" + r.getDate("dataacquisti") + "</div>"
-                                            + "<div class='col-sm-2'>" +  r.getDate("partenza") + "</div>"
-                                            + "<div class='col-sm-2'><a href='destination?denom=" +  r.getString("denom") + "'>" +  r.getString("denom") + "</a></div>"
-                                            + "<div class='col-sm-2'>" +  r.getString("t.nome") + "</div>"
-                                            + "<div class='col-sm-2'>" +  r.getInt("prezzo") + "</div>"
-                                        + "</div>"
-                                + "</div>";
-                    
-                    totalPrice += r.getInt("prezzo");
-                }
-
-                result= header + result
-                    + "<br><div class='row'>"
-                    + "<div class='alert alert-success'>"
-                    + "Spese totali: " + totalPrice
-                    + "</div></div>";
+                header = "<div class=\"row\">\n" +
+                        "<div class=\"jumbotron text-center\"><h2>" + destination + "</h2></div>" +
+                        "</div>" +
+                                "<div class='row'>"
+                                    + "<div class='alert alert-success'>"
+                                        + "<div class='col-sm-3'>Moneta</div>"
+                                        + "<div class='col-sm-3'>Clima</div>"
+                                        + "<div class='col-sm-3'>Costo Visto</div>"
+                                        + "<div class='col-sm-3'>Rilascio visto</div>"
+                                    + "</div>"
+                            + "</div>";
+                result += "<div class='row'>"
+                                    + "<div class='alert alert-info'>"
+                                        + "<div class='col-sm-3'>" + r.getString("moneta") + "</div>"
+                                        + "<div class='col-sm-3'>" +  r.getString("clima") + "</div>"
+                                        + "<div class='col-sm-3'>" +  r.getFloat("costovisto") + "</div>"
+                                        + "<div class='col-sm-3'>" +  r.getString("rilasciovisto") + "</div>"
+                                    + "</div>"
+                            + "</div>";
             }
+
+            result = header + result;
         } catch(ClassNotFoundException | SQLException e){
             System.out.println(e); //for debug purpose
             result += e;
@@ -113,7 +87,7 @@ public class buyTravel extends HttpServlet {
         
         try (PrintWriter out = response.getWriter()) {
             out.println("<head>\n" +
-                        "<title>Clienti</title>" +
+                        "<title>" + destination +"</title>" +
                         "<meta charset=\"UTF-8\">" +
                         "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">" +
                         "<link rel=\"stylesheet\" href=\"https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css\">" +
