@@ -22,7 +22,7 @@ import javax.servlet.http.HttpServletResponse;
  *
  * @author pirasalbe
  */
-public class findActor extends HttpServlet {
+public class travelSet extends HttpServlet {
 
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
@@ -38,33 +38,49 @@ public class findActor extends HttpServlet {
         response.setContentType("text/html;charset=UTF-8");
         
         String query = "select * "
-                + "from (film f inner join cast c on c.IdFilm=f.IdFilm)"
-                + "inner join attori a on a.IdAtt=c.IdAtt "
-                + "where a.cognome like '" + request.getParameter("actor") + "%'";
+                + "from (pacchetti p inner join nazioni n on n.codNazioni=p.codNazioni)"
+                + "inner join touroperator t on t.codorg=p.codorg "
+                + "where n.denom like '" + request.getParameter("destination") + "%' "
+                + "and p.giorni between " + request.getParameter("min") +" and " + request.getParameter("max") 
+                + " order by p.prezzo, p.giorni";
         
         Connection c = null;
         Statement s = null;
         ResultSet r = null;
         String result = "";
+        String destination = "";
         
         try{
             Class.forName("com.mysql.jdbc.Driver");
-            c = DriverManager.getConnection("jdbc:mysql://localhost:3306/cinema", "root","");
+            c = DriverManager.getConnection("jdbc:mysql://localhost:3306/viaggi", "root","");
             s = c.createStatement();
             
             //query
             r = s.executeQuery(query);
             
-            while(r.next()){
-                result += "<form action='plot'>" 
-                                + "<div class='row'>"
-                                    + "<div class='alert alert-info'>"
-                                        + "<div class='col-sm-4'><a href='plot?title=" + r.getString("titolo") + "'>" +  r.getString("titolo") + "</a></div>"
-                                        + "<div class='col-sm-2'>" +  r.getString("genere") + "</div>"
-                                        + "<div class='col-sm-2'>" +  r.getString("annopub") + "</div>"
+            result += "<div class='row'>"
+                                    + "<div class='alert alert-warning'>"
+                                        + "<div class='col-sm-2'>Descrizione</div>"
+                                        + "<div class='col-sm-2'>Giorni</div>"
+                                        + "<div class='col-sm-2'>Modalità</div>"
+                                        + "<div class='col-sm-2'>Prezzo</div>"
+                                        + "<div class='col-sm-2'>Modalità</div>"
+                                        + "<div class='col-sm-2'>Tour operator</div>"
                                     + "</div>"
-                            + "</div>"
-                                + "</form>";
+                            + "</div>";
+            
+            while(r.next()){
+                destination = r.getString("denom");
+                result += "<div class='row'>"
+                                    + "<div class='alert alert-info'>"
+                                        + "<div class='col-sm-2'>" + r.getString("descrizione") + "</div>"
+                                        + "<div class='col-sm-2'>" +  r.getInt("giorni") + "</div>"
+                                        + "<div class='col-sm-2'>" +  r.getString("modalita") + "</div>"
+                                        + "<div class='col-sm-2'>" +  r.getInt("prezzo") + "</div>"
+                                        + "<div class='col-sm-2'>" +  r.getString("modalita") + "</div>"
+                                        + "<div class='col-sm-2'>" +  r.getString("nome") + "</div>"
+                                    + "</div>"
+                            + "</div>";
             }
         } catch(ClassNotFoundException | SQLException e){
             System.out.println(e); //for debug purpose
@@ -75,7 +91,7 @@ public class findActor extends HttpServlet {
         
         try (PrintWriter out = response.getWriter()) {
             out.println("<head>\n" +
-                        "<title>Movies</title>" +
+                        "<title>" + destination + "</title>" +
                         "<meta charset=\"UTF-8\">" +
                         "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">" +
                         "<link rel=\"stylesheet\" href=\"https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css\">" +
@@ -85,7 +101,7 @@ public class findActor extends HttpServlet {
             out.println("<div class='container'>");
             
             out.println("<div class=\"row\">\n" +
-                        "<div class=\"jumbotron text-center\"><h2>Movies with that actor</h2></div>\n" +
+                        "<div class=\"jumbotron text-center\"><h2>" + destination + "</h2></div>\n" +
                         "</div>");
             
             //show result query
@@ -94,7 +110,6 @@ public class findActor extends HttpServlet {
             //come back home
             out.println("<div class='row'>"
                     + "<input type='button' class='btn btn-default' value='Home' onClick=\"javascript:location.href='index.html'\" />"
-                    + " <input type='button' class='btn btn-default' value='Result not found? Send as a report' onClick=\"javascript:location.href='reportForm.html'\" />"
                     + "</div>");
             
             out.println("</div>");
